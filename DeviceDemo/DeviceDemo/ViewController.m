@@ -30,7 +30,7 @@
 }
 //获取设备的信息
 -(void)getDeviceInfomation{
-    UIDevice* device        = [[UIDevice alloc]init];
+    UIDevice* device        = [UIDevice currentDevice];
     NSString* name          = device.name;                //获取设备所有者名称
     NSString* model         = device.model;               //获取设备类别
     NSString* type          = device.localizedModel;      //获取本地化版本
@@ -110,6 +110,41 @@
         ||[deviceString isEqualToString:@"iPad4,9"])      return @"iPad mini 3";
     return deviceString;
     
+}
+
+
+#pragma mark - 获取电池相关信息
+//获取电池状态
+-(NSString* )getBatteryState{
+    UIDevice* device = [UIDevice currentDevice];
+    if (device.batteryState == UIDeviceBatteryStateUnknown) {
+        return @"UnKnow";
+    }else if (device.batteryState == UIDeviceBatteryStateUnplugged){
+        return @"Unplugged";
+    }else if (device.batteryState == UIDeviceBatteryStateCharging){
+        return @"Charging";
+    }else if (device.batteryState == UIDeviceBatteryStateFull){
+        return @"Full";
+    }
+    return nil;
+}
+
+//获取电池等级 0.00~1.00
+-(float)getBatteryLevel{
+    return [UIDevice currentDevice].batteryLevel;
+}
+
+-(void)getBatteryInfo{
+    NSString* state = [self getBatteryState];
+    float level = [self getBatteryLevel] * 100;
+}
+
+//打开对电量和电池状态的监控，类似定时器的功能
+-(void)didLoad{
+    [[UIDevice currentDevice]setBatteryMonitoringEnabled:YES];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(getBatteryInfo:) name:UIDeviceBatteryStateDidChangeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(getBatteryInfo:) name:UIDeviceBatteryLevelDidChangeNotification object:nil];
+    [NSTimer scheduledTimerWithTimeInterval:0.5f target:self selector:@selector(getBatteryInfo:) userInfo:nil repeats:YES];
 }
 
 - (void)didReceiveMemoryWarning {
